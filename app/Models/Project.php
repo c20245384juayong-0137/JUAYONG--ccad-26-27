@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Project extends Model
-{   protected $table = ['projects'];
+{   protected $table = 'projects';
 
     protected $fillable = [
         'property_owner_id',
@@ -20,6 +20,14 @@ class Project extends Model
         'project_cost',
         'grid_permit_no',
     ];
+
+    protected $casts = [
+        'install_date' => 'date',
+        'panel_count' => 'integer',
+        'total_capacity_kw' => 'decimal:2',
+        'project_cost' => 'decimal:2',
+    ];
+
 
    public function propertyOwner(): BelongsTo
     {
@@ -38,6 +46,6 @@ class Project extends Model
 
     public function gridStatus(): BelongsTo
     {
-        return $this->belongsTo(GridStatus::class);
+        return $this->belongsTo(GridStatus::class, 'grid_status_id');
     }
 }

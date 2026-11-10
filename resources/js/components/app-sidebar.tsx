@@ -6,11 +6,20 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
-
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         url: '/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Projects',
+        url: '/projects',
+        icon: Folder,
+    },
+    {
+        title: 'Grid Status',
+        url: '/grid-status',
         icon: LayoutGrid,
     },
 ];

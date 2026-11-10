@@ -2,71 +2,100 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProjectRequest;
+use App\Models\GridStatus;
+use App\Models\Installer;
+use App\Models\Inverter;
 use App\Models\Project;
-use Illuminate\Http\Request;
+use App\Models\PropertyOwner;
+use App\Services\ProjectService;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ProjectController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
-           $projects = Project::with([
+        $projects = Project::with([
             'propertyOwner',
             'inverter',
             'installer',
-            'gridStatus'
+            'gridStatus',
         ])->latest()->paginate(10);
 
-        return view('projects.index', compact('projects'));
+        return Inertia::render('projects/index', [
+            'projects' => $projects,
+        ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
-        //
+        return Inertia::render('projects/create', [
+            'propertyOwners' => PropertyOwner::select('id', 'property_owner')->orderBy('property_owner')->get(),
+            'inverters' => Inverter::select('id', 'inverter_model')->orderBy('inverter_model')->get(),
+            'installers' => Installer::select('id', 'lead_installer')->orderBy('lead_installer')->get(),
+            'gridStatuses' => GridStatus::select('id', 'grid_status')->orderBy('grid_status')->get(),
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request, ProjectService $projectService): RedirectResponse
     {
-        //
+        $projectService->create($request->validated());
+
+        return redirect()->route('projects.index')->with('success', 'Solar project created successfully.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Project $project)
+    public function show(Project $project): Response
     {
-        //
+        return Inertia::render('projects/show', [
+            'project' => $project->load(['propertyOwner', 'inverter', 'installer', 'gridStatus']),
+        ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Project $project)
+    public function edit(Project $project): Response
     {
-        //
+        return Inertia::render('projects/edit', [
+            'project' => $project->load(['propertyOwner', 'inverter', 'installer', 'gridStatus']),
+            'propertyOwners' => PropertyOwner::select('id', 'property_owner')->orderBy('property_owner')->get(),
+            'inverters' => Inverter::select('id', 'inverter_model')->orderBy('inverter_model')->get(),
+            'installers' => Installer::select('id', 'lead_installer')->orderBy('lead_installer')->get(),
+            'gridStatuses' => GridStatus::select('id', 'grid_status')->orderBy('grid_status')->get(),
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Project $project)
+    public function update(StoreProjectRequest $request, Project $project, ProjectService $projectService): RedirectResponse
     {
-        //
+        $projectService->update($project->id, $request->validated());
+
+        return redirect()->route('projects.show', $project)->with('success', 'Solar project updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Project $project)
+    public function destroy(Project $project): RedirectResponse
     {
-        //
+        $project->delete();
+
+        return redirect()->route('projects.index')->with('success', 'Solar project deleted successfully.');
     }
 }

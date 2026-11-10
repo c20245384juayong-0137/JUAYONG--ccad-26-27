@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -6,28 +7,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('property_owner_id');   // no foreign key for now
+
+            $table->unsignedBigInteger('property_owner_id');
+            $table->unsignedBigInteger('inverter_id')->nullable();
+            $table->unsignedBigInteger('installer_id')->nullable();
+            $table->unsignedBigInteger('grid_status_id');
+
             $table->string('installation_address');
-            $table->string('panel_count');
-            $table->string('total_capacity_kw');
+            $table->unsignedInteger('panel_count');
+            $table->decimal('total_capacity_kw', 10, 2);
             $table->date('install_date');
-            $table->string('project_cost');
-            $table->string('grid_permit_no');
-            $table->unsignedBigInteger('grid_status_id');      // no foreign key for now
+            $table->decimal('project_cost', 12, 2);
+            $table->string('grid_permit_no')->nullable();
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('projects');
