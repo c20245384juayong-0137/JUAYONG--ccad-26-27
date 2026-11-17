@@ -2,64 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePropertyOwnerRequest;
+use App\Http\Requests\UpdatePropertyOwnerRequest;
 use App\Models\PropertyOwner;
-use Illuminate\Http\Request;
+use App\Services\PropertyOwnerService;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PropertyOwnerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): Response
     {
-        //
+        return Inertia::render('property-owners/index', [
+            'propertyOwners' => PropertyOwner::orderBy('property_owner')->get(),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): Response
     {
-        //
+        return Inertia::render('property-owners/index', [
+            'propertyOwners' => PropertyOwner::orderBy('property_owner')->get(),
+            'propertyOwner' => null,
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StorePropertyOwnerRequest $request, PropertyOwnerService $service): RedirectResponse
     {
-        //
+        $service->create($request->validated());
+
+        return redirect()->route('property-owners.index')->with('success', 'Property owner added successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(PropertyOwner $propertyOwner)
+    public function edit(PropertyOwner $propertyOwner): Response
     {
-        //
+        return Inertia::render('property-owners/index', [
+            'propertyOwners' => PropertyOwner::orderBy('property_owner')->get(),
+            'propertyOwner' => $propertyOwner,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(PropertyOwner $propertyOwner)
+    public function update(UpdatePropertyOwnerRequest $request, PropertyOwner $propertyOwner, PropertyOwnerService $service): RedirectResponse
     {
-        //
+        $service->update($propertyOwner->id, $request->validated());
+
+        return redirect()->route('property-owners.index')->with('success', 'Property owner updated successfully.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, PropertyOwner $propertyOwner)
+    public function destroy(PropertyOwner $propertyOwner): RedirectResponse
     {
-        //
-    }
+        $propertyOwner->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(PropertyOwner $propertyOwner)
-    {
-        //
+        return redirect()->route('property-owners.index')->with('success', 'Property owner deleted successfully.');
     }
 }

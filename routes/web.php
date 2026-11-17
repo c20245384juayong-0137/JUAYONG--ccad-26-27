@@ -18,6 +18,9 @@ Route::middleware(['auth'])->group(function () {
     // Solar Projects
     Route::resource('projects', ProjectController::class);
 
+    // Property Owners
+    Route::resource('property-owners', App\Http\Controllers\PropertyOwnerController::class);
+
     // Grid Status
     Route::get('/grid-status', function () {
         return Inertia::render('grid-status/index');

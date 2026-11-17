@@ -11,8 +11,8 @@ return new class extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-
-            $table->unsignedBigInteger('property_owner_id');
+            $table->string('project_name');
+            $table->string('property_owner_id');
             $table->unsignedBigInteger('inverter_id')->nullable();
             $table->unsignedBigInteger('installer_id')->nullable();
             $table->unsignedBigInteger('grid_status_id');
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedInteger('panel_count');
             $table->decimal('total_capacity_kw', 10, 2);
             $table->date('install_date');
-            $table->decimal('project_cost', 12, 2);
+            $table->decimal('project_cost', 15, 2)->nullable();
             $table->string('grid_permit_no')->nullable();
 
             $table->timestamps();

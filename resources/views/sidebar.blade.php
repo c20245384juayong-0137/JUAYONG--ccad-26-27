@@ -7,7 +7,7 @@
 </flux:sidebar.item>
 
 <flux:sidebar.item
-    icon="squares-2x2"
+    icon="folder"
     href="{{ route('grid-status.index') }}"
     :current="request()->routeIs('grid-status.*')"
 >

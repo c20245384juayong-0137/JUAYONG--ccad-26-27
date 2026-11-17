@@ -2,7 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\GridStatus;
+use App\Models\Installer;
+use App\Models\Inverter;
 use App\Models\Project;
+use App\Models\PropertyOwner;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -13,6 +17,7 @@ class ProjectService
     {
         return DB::transaction(function () use ($data) {
             $data = $this->sanitize($data);
+            $data = $this->resolveRelations($data);
             $this->checkConstraints($data);
 
             return Project::create($data);
@@ -25,6 +30,7 @@ class ProjectService
             $project = Project::findOrFail($id);
 
             $data = $this->sanitize($data);
+            $data = $this->resolveRelations($data);
             $this->checkConstraints($data);
 
             $project->update($data);
@@ -36,6 +42,10 @@ class ProjectService
     private function sanitize(array $data): array
     {
         foreach ([
+            'property_owner',
+            'inverter',
+            'installer',
+            'grid_status',
             'installation_address',
             'grid_permit_no',
         ] as $field) {
@@ -45,6 +55,40 @@ class ProjectService
         }
 
         return $data;
+    }
+
+    private function resolveRelations(array $data): array
+    {
+        $data['property_owner_id'] = PropertyOwner::firstOrCreate([
+            'property_owner' => $data['property_owner'],
+        ])->id;
+        $data['grid_status_id'] = GridStatus::firstOrCreate([
+            'grid_status' => $data['grid_status'],
+        ])->id;
+
+        $data['inverter_id'] = $this->resolveOptionalRelation(
+            Inverter::class,
+            'inverter_model',
+            $data['inverter'] ?? null,
+        );
+        $data['installer_id'] = $this->resolveOptionalRelation(
+            Installer::class,
+            'lead_installer',
+            $data['installer'] ?? null,
+        );
+
+        unset($data['property_owner'], $data['inverter'], $data['installer'], $data['grid_status']);
+
+        return $data;
+    }
+
+    private function resolveOptionalRelation(string $modelClass, string $attribute, ?string $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return $modelClass::firstOrCreate([$attribute => $value])->id;
     }
 
     private function checkConstraints(array $data): void

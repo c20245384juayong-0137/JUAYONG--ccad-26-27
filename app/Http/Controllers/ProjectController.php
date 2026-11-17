@@ -3,11 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProjectRequest;
-use App\Models\GridStatus;
-use App\Models\Installer;
-use App\Models\Inverter;
 use App\Models\Project;
-use App\Models\PropertyOwner;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -37,12 +33,7 @@ class ProjectController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('projects/create', [
-            'propertyOwners' => PropertyOwner::select('id', 'property_owner')->orderBy('property_owner')->get(),
-            'inverters' => Inverter::select('id', 'inverter_model')->orderBy('inverter_model')->get(),
-            'installers' => Installer::select('id', 'lead_installer')->orderBy('lead_installer')->get(),
-            'gridStatuses' => GridStatus::select('id', 'grid_status')->orderBy('grid_status')->get(),
-        ]);
+        return Inertia::render('projects/create');
     }
 
     /**
@@ -72,10 +63,6 @@ class ProjectController extends Controller
     {
         return Inertia::render('projects/edit', [
             'project' => $project->load(['propertyOwner', 'inverter', 'installer', 'gridStatus']),
-            'propertyOwners' => PropertyOwner::select('id', 'property_owner')->orderBy('property_owner')->get(),
-            'inverters' => Inverter::select('id', 'inverter_model')->orderBy('inverter_model')->get(),
-            'installers' => Installer::select('id', 'lead_installer')->orderBy('lead_installer')->get(),
-            'gridStatuses' => GridStatus::select('id', 'grid_status')->orderBy('grid_status')->get(),
         ]);
     }
 

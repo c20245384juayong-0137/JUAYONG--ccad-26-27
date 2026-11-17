@@ -6,6 +6,7 @@ import { Plus, Sun, Zap, MapPin } from 'lucide-react';
 
 interface Project {
     id: number;
+    project_name?: string;
     property_owner?: {
         id: number;
         name?: string;
@@ -126,6 +127,7 @@ export default function Projects({ projects }: Props) {
                         <table className="w-full text-sm">
                             <thead className="bg-muted/50">
                                 <tr className="text-left">
+                                    <th className="p-4">Project Name</th>
                                     <th className="p-4">Project ID</th>
                                     <th className="p-4">Installation Address</th>
                                     <th className="p-4">Panels</th>
@@ -141,6 +143,10 @@ export default function Projects({ projects }: Props) {
                                         key={project.id}
                                         className="border-t"
                                     >
+                                        <td className="p-4 font-medium">
+                                            {project.project_name || `Project #${project.id}`}
+                                        </td>
+
                                         <td className="p-4 font-medium">
                                             #{project.id}
                                         </td>

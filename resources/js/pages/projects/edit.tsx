@@ -9,20 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-interface SelectOption {
-    id: number;
-    property_owner?: string;
-    inverter_model?: string;
-    lead_installer?: string;
-    grid_status?: string;
-}
-
 interface Project {
     id: number;
-    property_owner_id: number;
-    inverter_id: number | null;
-    installer_id: number | null;
-    grid_status_id: number;
+    project_name: string;
+    property_owner?: { property_owner?: string } | null;
+    inverter?: { inverter_model?: string } | null;
+    installer?: { lead_installer?: string } | null;
+    grid_status?: { grid_status?: string } | null;
     installation_address: string;
     panel_count: number;
     total_capacity_kw: string;
@@ -33,10 +26,6 @@ interface Project {
 
 interface Props {
     project: Project;
-    propertyOwners: SelectOption[];
-    inverters: SelectOption[];
-    installers: SelectOption[];
-    gridStatuses: SelectOption[];
 }
 
 const breadcrumbs = (projectId: number): BreadcrumbItem[] => [
@@ -45,12 +34,13 @@ const breadcrumbs = (projectId: number): BreadcrumbItem[] => [
     { title: 'Edit Project', href: `/projects/${projectId}/edit` },
 ];
 
-export default function EditProject({ project, propertyOwners, inverters, installers, gridStatuses }: Props) {
+export default function EditProject({ project }: Props) {
     const { data, setData, put, processing, errors } = useForm({
-        property_owner_id: String(project.property_owner_id ?? ''),
-        inverter_id: String(project.inverter_id ?? ''),
-        installer_id: String(project.installer_id ?? ''),
-        grid_status_id: String(project.grid_status_id ?? ''),
+        project_name: project.project_name ?? '',
+        property_owner: project.property_owner?.property_owner ?? '',
+        inverter: project.inverter?.inverter_model ?? '',
+        installer: project.installer?.lead_installer ?? '',
+        grid_status: project.grid_status?.grid_status ?? '',
         installation_address: project.installation_address ?? '',
         panel_count: String(project.panel_count ?? ''),
         total_capacity_kw: String(project.total_capacity_kw ?? ''),
@@ -72,83 +62,65 @@ export default function EditProject({ project, propertyOwners, inverters, instal
                 <div className="flex items-center justify-between gap-2">
                     <div>
                         <h1 className="text-2xl font-bold">Edit Solar Project</h1>
-                        <p className="text-sm text-muted-foreground">Update the project details.</p>
+                        <p className="text-muted-foreground text-sm">Update the project details.</p>
                     </div>
 
-                    <Link href={route('projects.show', project.id)} className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                    <Link href={route('projects.show', project.id)} className="text-muted-foreground inline-flex items-center gap-2 text-sm">
                         <ArrowLeft className="size-4" />
                         View project
                     </Link>
                 </div>
 
-                <form onSubmit={submit} className="rounded-xl border bg-card p-6">
+                <form onSubmit={submit} className="bg-card rounded-xl border p-6">
                     <div className="grid gap-6 md:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor="property_owner_id">Property owner</Label>
-                            <select
-                                id="property_owner_id"
-                                value={data.property_owner_id}
-                                onChange={(e) => setData('property_owner_id', e.target.value)}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label htmlFor="project_name">Project name</Label>
+                            <Input
+                                id="project_name"
+                                value={data.project_name}
+                                onChange={(e) => setData('project_name', e.target.value)}
                                 disabled={processing}
-                            >
-                                <option value="">Select owner</option>
-                                {propertyOwners.map((owner) => (
-                                    <option key={owner.id} value={owner.id}>{owner.property_owner}</option>
-                                ))}
-                            </select>
-                            <InputError message={errors.property_owner_id} />
+                            />
+                            <InputError message={errors.project_name} />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="grid_status_id">Grid status</Label>
-                            <select
-                                id="grid_status_id"
-                                value={data.grid_status_id}
-                                onChange={(e) => setData('grid_status_id', e.target.value)}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            <Label htmlFor="property_owner">Property owner</Label>
+                            <Input
+                                id="property_owner"
+                                value={data.property_owner}
+                                onChange={(e) => setData('property_owner', e.target.value)}
                                 disabled={processing}
-                            >
-                                <option value="">Select grid status</option>
-                                {gridStatuses.map((status) => (
-                                    <option key={status.id} value={status.id}>{status.grid_status}</option>
-                                ))}
-                            </select>
-                            <InputError message={errors.grid_status_id} />
+                            />
+                            <InputError message={errors.property_owner} />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="inverter_id">Inverter</Label>
-                            <select
-                                id="inverter_id"
-                                value={data.inverter_id}
-                                onChange={(e) => setData('inverter_id', e.target.value)}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            <Label htmlFor="grid_status">Grid status</Label>
+                            <Input
+                                id="grid_status"
+                                value={data.grid_status}
+                                onChange={(e) => setData('grid_status', e.target.value)}
                                 disabled={processing}
-                            >
-                                <option value="">Select inverter</option>
-                                {inverters.map((inverter) => (
-                                    <option key={inverter.id} value={inverter.id}>{inverter.inverter_model}</option>
-                                ))}
-                            </select>
-                            <InputError message={errors.inverter_id} />
+                            />
+                            <InputError message={errors.grid_status} />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="installer_id">Installer</Label>
-                            <select
-                                id="installer_id"
-                                value={data.installer_id}
-                                onChange={(e) => setData('installer_id', e.target.value)}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            <Label htmlFor="inverter">Inverter</Label>
+                            <Input id="inverter" value={data.inverter} onChange={(e) => setData('inverter', e.target.value)} disabled={processing} />
+                            <InputError message={errors.inverter} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="installer">Installer</Label>
+                            <Input
+                                id="installer"
+                                value={data.installer}
+                                onChange={(e) => setData('installer', e.target.value)}
                                 disabled={processing}
-                            >
-                                <option value="">Select installer</option>
-                                {installers.map((installer) => (
-                                    <option key={installer.id} value={installer.id}>{installer.lead_installer}</option>
-                                ))}
-                            </select>
-                            <InputError message={errors.installer_id} />
+                            />
+                            <InputError message={errors.installer} />
                         </div>
 
                         <div className="grid gap-2 md:col-span-2">
@@ -228,7 +200,7 @@ export default function EditProject({ project, propertyOwners, inverters, instal
                     </div>
 
                     <div className="mt-6 flex items-center justify-end gap-3">
-                        <Link href={route('projects.show', project.id)} className="text-sm text-muted-foreground">
+                        <Link href={route('projects.show', project.id)} className="text-muted-foreground text-sm">
                             Cancel
                         </Link>
                         <Button type="submit" disabled={processing}>

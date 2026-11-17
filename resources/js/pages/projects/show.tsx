@@ -5,6 +5,7 @@ import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 
 interface Project {
     id: number;
+    project_name?: string;
     property_owner?: { property_owner?: string };
     inverter?: { inverter_model?: string };
     installer?: { lead_installer?: string };
@@ -34,7 +35,7 @@ export default function ShowProject({ project }: Props) {
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-2xl font-bold">Project #{project.id}</h1>
+                        <h1 className="text-2xl font-bold">{project.project_name || `Project #${project.id}`}</h1>
                         <p className="text-sm text-muted-foreground">Solar installation details</p>
                     </div>
 
@@ -58,6 +59,7 @@ export default function ShowProject({ project }: Props) {
                     <div className="rounded-xl border bg-card p-6">
                         <h2 className="mb-4 text-lg font-semibold">Project overview</h2>
                         <dl className="space-y-3 text-sm">
+                            <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Project name</dt><dd>{project.project_name || 'Not set'}</dd></div>
                             <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Address</dt><dd>{project.installation_address}</dd></div>
                             <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Owner</dt><dd>{project.property_owner?.property_owner ?? 'Not assigned'}</dd></div>
                             <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Inverter</dt><dd>{project.inverter?.inverter_model ?? 'Not assigned'}</dd></div>

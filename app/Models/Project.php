@@ -9,6 +9,7 @@ class Project extends Model
 {   protected $table = 'projects';
 
     protected $fillable = [
+        'project_name',
         'property_owner_id',
         'inverter_id',
         'installer_id',
