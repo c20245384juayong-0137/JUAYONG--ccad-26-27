@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\GridStatusController;
 use App\Http\Controllers\ProjectController;
 
 Route::get('/', function () {
@@ -22,9 +23,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('property-owners', App\Http\Controllers\PropertyOwnerController::class);
 
     // Grid Status
-    Route::get('/grid-status', function () {
-        return Inertia::render('grid-status/index');
-    })->name('grid-status.index');
+    Route::get('/grid-status', [GridStatusController::class, 'index'])->name('grid-status.index');
+    Route::patch('/projects/{project}/grid-status', [GridStatusController::class, 'update'])
+        ->name('projects.grid-status.update');
 
 });
 

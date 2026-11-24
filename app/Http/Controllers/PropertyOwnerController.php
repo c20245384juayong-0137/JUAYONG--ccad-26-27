@@ -14,15 +14,15 @@ class PropertyOwnerController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('property-owners/index', [
-            'propertyOwners' => PropertyOwner::orderBy('property_owner')->get(),
+        return Inertia::render('PropertyOwners/Index', [ // no jsx page
+            'propertyOwners' => PropertyOwner::orderBy('property_owner')->get(), // need further optimization
         ]);
     }
 
     public function create(): Response
     {
-        return Inertia::render('property-owners/index', [
-            'propertyOwners' => PropertyOwner::orderBy('property_owner')->get(),
+        return Inertia::render('PropertyOwners/Index', [
+            'propertyOwners' => PropertyOwner::orderBy('property_owner')->get(), // need further optimization
             'propertyOwner' => null,
         ]);
     }
@@ -36,8 +36,8 @@ class PropertyOwnerController extends Controller
 
     public function edit(PropertyOwner $propertyOwner): Response
     {
-        return Inertia::render('property-owners/index', [
-            'propertyOwners' => PropertyOwner::orderBy('property_owner')->get(),
+        return Inertia::render('PropertyOwners/Index', [
+            'propertyOwners' => PropertyOwner::orderBy('property_owner')->get(), // need further optimization
             'propertyOwner' => $propertyOwner,
         ]);
     }

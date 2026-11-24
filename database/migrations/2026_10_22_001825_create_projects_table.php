@@ -22,8 +22,7 @@ return new class extends Migration
             $table->decimal('total_capacity_kw', 10, 2);
             $table->date('install_date');
             $table->decimal('project_cost', 15, 2)->nullable();
-            $table->string('grid_permit_no')->nullable();
-
+            $table->string('grid_permit_no')->unique();
             $table->timestamps();
         });
     }

@@ -44,7 +44,7 @@ export default function EditProject({ project }: Props) {
         installation_address: project.installation_address ?? '',
         panel_count: String(project.panel_count ?? ''),
         total_capacity_kw: String(project.total_capacity_kw ?? ''),
-        install_date: project.install_date ?? '',
+        install_date: project.install_date?.slice(0, 10) ?? '',
         project_cost: String(project.project_cost ?? ''),
         grid_permit_no: project.grid_permit_no ?? '',
     });

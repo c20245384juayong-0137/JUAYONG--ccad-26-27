@@ -20,6 +20,8 @@ class ProjectService
             $data = $this->resolveRelations($data);
             $this->checkConstraints($data);
 
+            $data['grid_permit_no'] = $this->generateGridPermitNo();
+
             return Project::create($data);
         });
     }
@@ -39,17 +41,32 @@ class ProjectService
         });
     }
 
+    public function updateGridStatus(Project $project, string $status): Project
+    {
+        return DB::transaction(function () use ($project, $status) {
+            $gridStatus = GridStatus::firstOrCreate([
+                'grid_status' => Str::squish($status),
+            ]);
+
+            $project->update(['grid_status_id' => $gridStatus->id]);
+
+            return $project->refresh();
+        });
+    }
+
     private function sanitize(array $data): array
     {
-        foreach ([
-            'property_owner',
-            'inverter',
-            'installer',
-            'grid_status',
-            'installation_address',
-            'grid_permit_no',
-        ] as $field) {
-            if (isset($data[$field])) {
+        foreach (
+            [
+                'property_owner',
+                'inverter',
+                'installer',
+                'grid_status',
+                'installation_address',
+                'grid_permit_no',
+            ] as $field
+        ) {
+            if (isset($data[$field]) && is_string($data[$field])) {
                 $data[$field] = Str::squish($data[$field]);
             }
         }
@@ -113,5 +130,9 @@ class ProjectService
                 'project_cost' => 'Project cost cannot be negative.',
             ]);
         }
+    }
+    private function generateGridPermitNo(): string
+    {
+        return 'GP-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
     }
 }

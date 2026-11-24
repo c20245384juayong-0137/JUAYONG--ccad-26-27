@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
@@ -17,11 +18,11 @@ class ProjectController extends Controller
     public function index(): Response
     {
         $projects = Project::with([
-            'propertyOwner',
-            'inverter',
-            'installer',
-            'gridStatus',
-        ])->latest()->paginate(10);
+            'propertyOwner', // need further optimization
+            'inverter', // need further optimization
+            'installer', // need further optimization
+            'gridStatus', // need further optimization
+        ])->orderBy('id')->paginate(10); // need further optimization
 
         return Inertia::render('projects/index', [
             'projects' => $projects,
@@ -41,7 +42,7 @@ class ProjectController extends Controller
      */
     public function store(StoreProjectRequest $request, ProjectService $projectService): RedirectResponse
     {
-        $projectService->create($request->validated());
+        $projectService->create($request->validated()); // correct
 
         return redirect()->route('projects.index')->with('success', 'Solar project created successfully.');
     }
@@ -52,7 +53,7 @@ class ProjectController extends Controller
     public function show(Project $project): Response
     {
         return Inertia::render('projects/show', [
-            'project' => $project->load(['propertyOwner', 'inverter', 'installer', 'gridStatus']),
+            'project' => $project->load(['propertyOwner', 'inverter', 'installer', 'gridStatus']), // need further optimization
         ]);
     }
 
@@ -62,14 +63,14 @@ class ProjectController extends Controller
     public function edit(Project $project): Response
     {
         return Inertia::render('projects/edit', [
-            'project' => $project->load(['propertyOwner', 'inverter', 'installer', 'gridStatus']),
+            'project' => $project->load(['propertyOwner', 'inverter', 'installer', 'gridStatus']), // need further optimization
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreProjectRequest $request, Project $project, ProjectService $projectService): RedirectResponse
+    public function update(UpdateProjectRequest $request, Project $project, ProjectService $projectService): RedirectResponse
     {
         $projectService->update($project->id, $request->validated());
 

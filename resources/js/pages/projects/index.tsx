@@ -2,28 +2,26 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { Plus, Sun, Zap, MapPin } from 'lucide-react';
+import { Pencil, Plus, Sun, Zap, MapPin } from 'lucide-react';
 
 interface Project {
     id: number;
     project_name?: string;
     property_owner?: {
         id: number;
-        name?: string;
+        property_owner?: string;
     };
     inverter?: {
         id: number;
-        name?: string;
-        model?: string;
+        inverter_model?: string;
     };
     installer?: {
         id: number;
-        name?: string;
+        lead_installer?: string;
     };
     grid_status?: {
         id: number;
-        name?: string;
-        status?: string;
+        grid_status?: string;
     };
     installation_address: string;
     panel_count: number;
@@ -128,12 +126,13 @@ export default function Projects({ projects }: Props) {
                             <thead className="bg-muted/50">
                                 <tr className="text-left">
                                     <th className="p-4">Project Name</th>
-                                    <th className="p-4">Project ID</th>
+                                    <th className="p-4">Property Owner</th>
                                     <th className="p-4">Installation Address</th>
                                     <th className="p-4">Panels</th>
                                     <th className="p-4">Capacity</th>
                                     <th className="p-4">Installer</th>
                                     <th className="p-4">Grid Status</th>
+                                    <th className="p-4">Actions</th>
                                 </tr>
                             </thead>
 
@@ -148,7 +147,7 @@ export default function Projects({ projects }: Props) {
                                         </td>
 
                                         <td className="p-4 font-medium">
-                                            #{project.id}
+                                            {project.property_owner?.property_owner ?? 'Not assigned'}
                                         </td>
 
                                         <td className="p-4">
@@ -164,13 +163,22 @@ export default function Projects({ projects }: Props) {
                                         </td>
 
                                         <td className="p-4">
-                                            {project.installer?.name ?? 'Not assigned'}
+                                            {project.installer?.lead_installer ?? 'Not assigned'}
                                         </td>
 
                                         <td className="p-4">
-                                            {project.grid_status?.name ??
-                                                project.grid_status?.status ??
-                                                'Not assigned'}
+                                            {project.grid_status?.grid_status ?? 'Not assigned'}
+                                        </td>
+
+                                        <td className="p-4">
+                                            <Link
+                                                href={route('projects.edit', project.id)}
+                                                className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted"
+                                                aria-label={`Edit ${project.project_name || `project ${project.id}`}`}
+                                            >
+                                                <Pencil className="size-4" />
+                                                Edit
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}
@@ -178,7 +186,7 @@ export default function Projects({ projects }: Props) {
                                 {projects.data.length === 0 && (
                                     <tr>
                                         <td
-                                            colSpan={6}
+                                            colSpan={8}
                                             className="p-8 text-center text-muted-foreground"
                                         >
                                             No solar projects registered yet.
