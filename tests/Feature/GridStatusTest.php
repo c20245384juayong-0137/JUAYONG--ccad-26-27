@@ -46,9 +46,30 @@ class GridStatusTest extends TestCase
 
         $project->refresh()->load('gridStatus');
         $this->assertSame('Connected', $project->gridStatus->grid_status);
+
+        app(\App\Services\ProjectService::class)->create([
+            'project_name' => 'Disconnected project',
+            'property_owner' => 'Owner B',
+            'inverter' => '',
+            'installer' => 'Installer B',
+            'grid_status' => 'Disconnected',
+            'installation_address' => '456 Main St',
+            'panel_count' => 10,
+            'total_capacity_kw' => 3.5,
+            'install_date' => '2026-11-13',
+            'project_cost' => 20000,
+        ]);
+
         $this->get('/grid-status')->assertInertia(fn (Assert $page) => $page
             ->where('statusCounts.connected', 1)
             ->where('statusCounts.pending', 0)
+            ->where('statusCounts.disconnected', 1)
+        );
+
+        $this->get('/grid-status?search=Disconnected')->assertInertia(fn (Assert $page) => $page
+            ->where('filters.search', 'Disconnected')
+            ->where('projects.total', 1)
+            ->where('projects.data.0.project_name', 'Disconnected project')
         );
     }
 }

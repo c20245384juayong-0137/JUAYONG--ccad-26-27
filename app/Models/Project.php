@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Project extends Model
-{   protected $table = 'projects';
+{
+    protected $table = 'projects';
 
     protected $fillable = [
         'project_name',
@@ -30,7 +32,7 @@ class Project extends Model
     ];
 
 
-   public function propertyOwner(): BelongsTo
+    public function propertyOwner(): BelongsTo
     {
         return $this->belongsTo(PropertyOwner::class);
     }
@@ -48,5 +50,12 @@ class Project extends Model
     public function gridStatus(): BelongsTo
     {
         return $this->belongsTo(GridStatus::class, 'grid_status_id');
+    }
+
+    public function scopeWithGridStatus(Builder $query, string $status): Builder
+    {
+        return $query->whereHas('gridStatus', function (Builder $query) use ($status) {
+            $query->whereRaw('LOWER(TRIM(grid_status)) = ?', [strtolower(trim($status))]);
+        });
     }
 }

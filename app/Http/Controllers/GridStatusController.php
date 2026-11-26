@@ -15,25 +15,40 @@ class GridStatusController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $projects = Project::with(['propertyOwner', 'installer', 'gridStatus']) // need further optimization
-            ->orderBy('id')
-            ->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+        ]);
+        $search = trim($validated['search'] ?? '');
 
-            //transfer this to a service class
-        $countStatus = static function (string $status): int {
-            return Project::whereHas('gridStatus', function ($query) use ($status) {
-                $query->whereRaw('LOWER(grid_status) LIKE ?', ['%' . strtolower($status) . '%']);
-            })->count();
-        };
+        $projectsQuery = Project::with(['propertyOwner', 'installer', 'gridStatus']); // need further optimization
+
+        if ($search !== '') {
+            $projectsQuery->where(function ($query) use ($search) {
+                $like = '%' . $search . '%';
+
+                $query->where('project_name', 'like', $like)
+                    ->orWhere('installation_address', 'like', $like)
+                    ->orWhereHas('propertyOwner', fn ($query) => $query->where('property_owner', 'like', $like))
+                    ->orWhereHas('installer', fn ($query) => $query->where('lead_installer', 'like', $like))
+                    ->orWhereHas('gridStatus', fn ($query) => $query->where('grid_status', 'like', $like));
+            });
+        }
+
+        $projects = $projectsQuery
+            ->orderBy('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('grid-status/index', [
             'projects' => $projects,
+            'filters' => ['search' => $search],
             'statusCounts' => [
                 'total' => Project::count(),
-                'connected' => $countStatus('connected'),
-                'pending' => $countStatus('pending'),
+                'connected' => Project::withGridStatus('connected')->count(),
+                'pending' => Project::withGridStatus('pending')->count(),
+                'disconnected' => Project::withGridStatus('disconnected')->count(),
             ],
         ]);
     }

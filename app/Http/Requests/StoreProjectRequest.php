@@ -25,7 +25,7 @@ class StoreProjectRequest extends FormRequest
             'total_capacity_kw' => 'required|numeric|min:0.1|max:1000000',
             'install_date' => 'required|date',
             'project_cost' => 'required|numeric|min:0|max:9999999999999.99',
-            'grid_permit_no' => 'sometimes|nullable|string|max:100',
+            'grid_permit_no' => 'sometimes|nullable|string|max:100|unique:projects,grid_permit_no',
         ];
     }
 

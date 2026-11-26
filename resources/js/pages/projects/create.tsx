@@ -8,13 +8,24 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface Installer {
+    id: number;
+    lead_installer: string;
+}
+
+interface Props {
+    installers: Installer[];
+    gridPermitNo: string;
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Solar Projects', href: '/projects' },
     { title: 'Create Project', href: '/projects/create' },
 ];
 
-export default function CreateProject() {
+export default function CreateProject({ installers, gridPermitNo }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         project_name: '',
         property_owner: '',
@@ -26,7 +37,7 @@ export default function CreateProject() {
         total_capacity_kw: '',
         install_date: '',
         project_cost: '',
-        grid_permit_no: '',
+        grid_permit_no: gridPermitNo,
     });
 
     const submit: FormEventHandler<HTMLFormElement> = (e) => {
@@ -103,13 +114,30 @@ export default function CreateProject() {
 
                         <div className="grid gap-2">
                             <Label htmlFor="installer">Installer</Label>
-                            <Input
-                                id="installer"
-                                value={data.installer}
-                                onChange={(e) => setData('installer', e.target.value)}
+                            <Select
+                                value={String(installers.find((installer) => installer.lead_installer === data.installer)?.id ?? 'none')}
+                                onValueChange={(value) =>
+                                    setData(
+                                        'installer',
+                                        value === 'none'
+                                            ? ''
+                                            : (installers.find((installer) => String(installer.id) === value)?.lead_installer ?? ''),
+                                    )
+                                }
                                 disabled={processing}
-                                placeholder="Enter installer"
-                            />
+                            >
+                                <SelectTrigger id="installer">
+                                    <SelectValue placeholder={installers.length ? 'Select an installer' : 'No installers available'} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">No installer</SelectItem>
+                                    {installers.map((installer) => (
+                                        <SelectItem key={installer.id} value={String(installer.id)}>
+                                            {installer.lead_installer}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                             <InputError message={errors.installer} />
                         </div>
 
@@ -180,13 +208,8 @@ export default function CreateProject() {
 
                         <div className="grid gap-2 md:col-span-2">
                             <Label htmlFor="grid_permit_no">Grid permit number</Label>
-                            <Input
-                                id="grid_permit_no"
-                                value={data.grid_permit_no}
-                                onChange={(e) => setData('grid_permit_no', e.target.value)}
-                                disabled={processing}
-                                placeholder="WP-2026-001"
-                            />
+                            <Input id="grid_permit_no" value={data.grid_permit_no} readOnly disabled={processing} />
+                            <p className="text-muted-foreground text-xs">Generated automatically for this project.</p>
                             <InputError message={errors.grid_permit_no} />
                         </div>
                     </div>

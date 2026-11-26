@@ -8,6 +8,7 @@ use App\Models\Inverter;
 use App\Models\Project;
 use App\Models\PropertyOwner;
 use App\Models\User;
+use App\Services\ProjectService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -77,6 +78,70 @@ class ProjectValidationTest extends TestCase
         ]);
     }
 
+    public function test_generated_grid_permit_number_is_shown_and_saved_with_the_project(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->get('/projects/create')->assertInertia(fn (Assert $page) => $page
+            ->component('projects/create')
+            ->has('gridPermitNo')
+        );
+
+        $permitNumber = app(ProjectService::class)->generateGridPermitNo();
+        $this->assertSame(1, preg_match('/^GP-\d{8}-[A-Z0-9]{6}$/', $permitNumber));
+
+        $this->post('/projects', [
+            'project_name' => 'Generated Permit Project',
+            'property_owner' => 'Owner A',
+            'inverter' => '',
+            'installer' => '',
+            'grid_status' => 'Pending',
+            'installation_address' => '123 Main St',
+            'panel_count' => 12,
+            'total_capacity_kw' => 4.5,
+            'install_date' => '2026-11-12',
+            'project_cost' => 25000,
+            'grid_permit_no' => $permitNumber,
+        ])->assertRedirect('/projects');
+
+        $this->assertDatabaseHas('projects', [
+            'project_name' => 'Generated Permit Project',
+            'grid_permit_no' => $permitNumber,
+        ]);
+    }
+
+    public function test_registered_installers_are_available_on_create_and_edit_forms(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $installer = Installer::create(['lead_installer' => 'Solar Team']);
+
+        $this->get('/projects/create')->assertInertia(fn (Assert $page) => $page
+            ->component('projects/create')
+            ->where('installers.0.id', $installer->id)
+            ->where('installers.0.lead_installer', 'Solar Team')
+        );
+
+        $this->post('/projects', [
+            'project_name' => 'Sunrise Villa',
+            'property_owner' => 'Owner A',
+            'inverter' => '',
+            'installer' => 'Solar Team',
+            'grid_status' => 'Connected',
+            'installation_address' => '123 Main St',
+            'panel_count' => 12,
+            'total_capacity_kw' => 4.5,
+            'install_date' => '2026-11-12',
+            'project_cost' => 25000,
+        ])->assertRedirect('/projects');
+
+        $project = Project::where('project_name', 'Sunrise Villa')->firstOrFail();
+        $this->get("/projects/{$project->id}/edit")->assertInertia(fn (Assert $page) => $page
+            ->component('projects/edit')
+            ->where('project.installer.id', $installer->id)
+            ->where('installers.0.lead_installer', 'Solar Team')
+        );
+    }
+
     public function test_project_update_changes_installer_and_grid_status(): void
     {
         $this->actingAs(User::factory()->create());
@@ -111,7 +176,7 @@ class ProjectValidationTest extends TestCase
             'grid_permit_no' => 'WP-1001',
         ]);
 
-        $response->assertRedirect("/projects/{$project->id}");
+        $response->assertRedirect('/projects');
         $project->refresh()->load(['installer', 'gridStatus']);
 
         $this->assertSame('Installer B', $project->installer->lead_installer);
@@ -127,8 +192,8 @@ class ProjectValidationTest extends TestCase
             ['project_name' => 'Project Two', 'property_owner' => 'Owner Two'],
         ] as $projectData) {
             $this->post('/projects', array_merge($projectData, [
-                'inverter' => '',
-                'installer' => '',
+                'inverter' => 'Inverter ' . str_replace('Project ', '', $projectData['project_name']),
+                'installer' => 'Installer ' . str_replace('Project ', '', $projectData['project_name']),
                 'grid_status' => 'Pending',
                 'installation_address' => '123 Main St',
                 'panel_count' => 12,
@@ -146,7 +211,17 @@ class ProjectValidationTest extends TestCase
             ->component('projects/index')
             ->where('projects.data.0.id', $firstProject->id)
             ->where('projects.data.0.property_owner.property_owner', 'Owner One')
+            ->where('projects.data.0.inverter.inverter_model', 'Inverter One')
+            ->where('projects.data.0.installer.lead_installer', 'Installer One')
+            ->where('projects.data.0.grid_permit_no', $firstProject->grid_permit_no)
+            ->where('projects.data.0.project_cost', '25000.00')
             ->where('projects.data.1.id', $secondProject->id)
+        );
+
+        $this->get('/projects?search=Installer%20Two')->assertInertia(fn (Assert $page) => $page
+            ->where('filters.search', 'Installer Two')
+            ->where('projects.total', 1)
+            ->where('projects.data.0.project_name', 'Project Two')
         );
     }
 }

@@ -1,7 +1,8 @@
+import SearchBar from '@/components/search-bar';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { AlertTriangle, CheckCircle, LoaderCircle, Save, Zap } from 'lucide-react';
+import { AlertTriangle, CheckCircle, LoaderCircle, Save, Unplug, Zap } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
 import InputError from '@/components/input-error';
@@ -35,6 +36,10 @@ interface Props {
         total: number;
         connected: number;
         pending: number;
+        disconnected: number;
+    };
+    filters: {
+        search: string;
     };
 }
 
@@ -52,7 +57,7 @@ function ProjectStatusRow({ project }: { project: Project }) {
         <tr className="border-t">
             <td className="p-4">
                 <div className="font-medium">{project.project_name || `Project #${project.id}`}</div>
-                <div className="text-xs text-muted-foreground">Project #{project.id}</div>
+                <div className="text-muted-foreground text-xs">Project #{project.id}</div>
             </td>
             <td className="p-4">{project.property_owner?.property_owner ?? 'Not assigned'}</td>
             <td className="p-4">{project.installer?.lead_installer ?? 'Not assigned'}</td>
@@ -80,7 +85,17 @@ function ProjectStatusRow({ project }: { project: Project }) {
     );
 }
 
-export default function GridStatus({ projects, statusCounts }: Props) {
+function pageUrl(page: number, search: string): string {
+    const params = new URLSearchParams({ page: String(page) });
+
+    if (search) {
+        params.set('search', search);
+    }
+
+    return `/grid-status?${params.toString()}`;
+}
+
+export default function GridStatus({ projects, statusCounts, filters }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Grid Status" />
@@ -88,33 +103,46 @@ export default function GridStatus({ projects, statusCounts }: Props) {
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <div>
                     <h1 className="text-2xl font-bold">Solar Grid Status</h1>
-                    <p className="text-sm text-muted-foreground">Monitor and update your solar project grid connections.</p>
+                    <p className="text-muted-foreground text-sm">Monitor and update your solar project grid connections.</p>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                    <div className="rounded-xl border bg-card p-5">
+                <SearchBar
+                    key={filters.search}
+                    action={route('grid-status.index')}
+                    value={filters.search}
+                    placeholder="Search projects, owners, installers, status..."
+                />
+
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="bg-card rounded-xl border p-5">
                         <CheckCircle className="mb-3 size-6 text-blue-600" />
-                        <p className="text-sm text-muted-foreground">Total Projects</p>
+                        <p className="text-muted-foreground text-sm">Total Projects</p>
                         <h2 className="text-3xl font-bold">{statusCounts.total}</h2>
                     </div>
 
-                    <div className="rounded-xl border bg-card p-5">
+                    <div className="bg-card rounded-xl border p-5">
                         <Zap className="mb-3 size-6 text-green-600" />
-                        <p className="text-sm text-muted-foreground">Connected</p>
+                        <p className="text-muted-foreground text-sm">Connected</p>
                         <h2 className="text-3xl font-bold">{statusCounts.connected}</h2>
                     </div>
 
-                    <div className="rounded-xl border bg-card p-5">
+                    <div className="bg-card rounded-xl border p-5">
                         <AlertTriangle className="mb-3 size-6 text-orange-500" />
-                        <p className="text-sm text-muted-foreground">Pending Connection</p>
+                        <p className="text-muted-foreground text-sm">Pending Connection</p>
                         <h2 className="text-3xl font-bold">{statusCounts.pending}</h2>
+                    </div>
+
+                    <div className="bg-card rounded-xl border p-5">
+                        <Unplug className="mb-3 size-6 text-red-600" />
+                        <p className="text-muted-foreground text-sm">Disconnected</p>
+                        <h2 className="text-3xl font-bold">{statusCounts.disconnected}</h2>
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border bg-card">
+                <div className="bg-card overflow-hidden rounded-xl border">
                     <div className="border-b p-5">
                         <h2 className="font-semibold">Grid Connection Monitoring</h2>
-                        <p className="text-sm text-muted-foreground">Edit a project’s grid status below and save your change.</p>
+                        <p className="text-muted-foreground text-sm">Edit a project’s grid status below and save your change.</p>
                     </div>
 
                     <div className="overflow-x-auto">
@@ -133,7 +161,7 @@ export default function GridStatus({ projects, statusCounts }: Props) {
                                 ))}
                                 {projects.data.length === 0 && (
                                     <tr>
-                                        <td colSpan={4} className="p-8 text-center text-muted-foreground">
+                                        <td colSpan={4} className="text-muted-foreground p-8 text-center">
                                             No solar projects registered yet.
                                         </td>
                                     </tr>
@@ -143,15 +171,15 @@ export default function GridStatus({ projects, statusCounts }: Props) {
                     </div>
 
                     <div className="flex items-center justify-between border-t p-4">
-                        <p className="text-sm text-muted-foreground">Total: {projects.total} projects</p>
+                        <p className="text-muted-foreground text-sm">Total: {projects.total} projects</p>
                         <div className="flex gap-2">
                             {projects.current_page > 1 && (
-                                <Link href={`/grid-status?page=${projects.current_page - 1}`} className="rounded-md border px-3 py-2 text-sm">
+                                <Link href={pageUrl(projects.current_page - 1, filters.search)} className="rounded-md border px-3 py-2 text-sm">
                                     Previous
                                 </Link>
                             )}
                             {projects.current_page < projects.last_page && (
-                                <Link href={`/grid-status?page=${projects.current_page + 1}`} className="rounded-md border px-3 py-2 text-sm">
+                                <Link href={pageUrl(projects.current_page + 1, filters.search)} className="rounded-md border px-3 py-2 text-sm">
                                     Next
                                 </Link>
                             )}

@@ -20,7 +20,7 @@ class ProjectService
             $data = $this->resolveRelations($data);
             $this->checkConstraints($data);
 
-            $data['grid_permit_no'] = $this->generateGridPermitNo();
+            $data['grid_permit_no'] = $data['grid_permit_no'] ?? $this->generateGridPermitNo();
 
             return Project::create($data);
         });
@@ -131,8 +131,12 @@ class ProjectService
             ]);
         }
     }
-    private function generateGridPermitNo(): string
+    public function generateGridPermitNo(): string
     {
-        return 'GP-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+        do {
+            $permitNumber = 'GP-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+        } while (Project::where('grid_permit_no', $permitNumber)->exists());
+
+        return $permitNumber;
     }
 }

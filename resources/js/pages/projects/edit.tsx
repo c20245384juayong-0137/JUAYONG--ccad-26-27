@@ -8,6 +8,12 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface InstallerOption {
+    id: number;
+    lead_installer: string;
+}
 
 interface Project {
     id: number;
@@ -26,6 +32,7 @@ interface Project {
 
 interface Props {
     project: Project;
+    installers: InstallerOption[];
 }
 
 const breadcrumbs = (projectId: number): BreadcrumbItem[] => [
@@ -34,7 +41,7 @@ const breadcrumbs = (projectId: number): BreadcrumbItem[] => [
     { title: 'Edit Project', href: `/projects/${projectId}/edit` },
 ];
 
-export default function EditProject({ project }: Props) {
+export default function EditProject({ project, installers }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         project_name: project.project_name ?? '',
         property_owner: project.property_owner?.property_owner ?? '',
@@ -114,12 +121,30 @@ export default function EditProject({ project }: Props) {
 
                         <div className="grid gap-2">
                             <Label htmlFor="installer">Installer</Label>
-                            <Input
-                                id="installer"
-                                value={data.installer}
-                                onChange={(e) => setData('installer', e.target.value)}
+                            <Select
+                                value={String(installers.find((installer) => installer.lead_installer === data.installer)?.id ?? 'none')}
+                                onValueChange={(value) =>
+                                    setData(
+                                        'installer',
+                                        value === 'none'
+                                            ? ''
+                                            : (installers.find((installer) => String(installer.id) === value)?.lead_installer ?? ''),
+                                    )
+                                }
                                 disabled={processing}
-                            />
+                            >
+                                <SelectTrigger id="installer">
+                                    <SelectValue placeholder={installers.length ? 'Select an installer' : 'No installers available'} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">No installer</SelectItem>
+                                    {installers.map((installer) => (
+                                        <SelectItem key={installer.id} value={String(installer.id)}>
+                                            {installer.lead_installer}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                             <InputError message={errors.installer} />
                         </div>
 
@@ -189,12 +214,8 @@ export default function EditProject({ project }: Props) {
 
                         <div className="grid gap-2 md:col-span-2">
                             <Label htmlFor="grid_permit_no">Grid permit number</Label>
-                            <Input
-                                id="grid_permit_no"
-                                value={data.grid_permit_no}
-                                onChange={(e) => setData('grid_permit_no', e.target.value)}
-                                disabled={processing}
-                            />
+                            <Input id="grid_permit_no" value={data.grid_permit_no} readOnly disabled={processing} />
+                            <p className="text-muted-foreground text-xs">This permit number was generated for this project.</p>
                             <InputError message={errors.grid_permit_no} />
                         </div>
                     </div>

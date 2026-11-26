@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GridStatusController;
 use App\Http\Controllers\ProjectController;
 
@@ -12,15 +13,17 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Solar Projects
     Route::resource('projects', ProjectController::class);
 
     // Property Owners
     Route::resource('property-owners', App\Http\Controllers\PropertyOwnerController::class);
+
+    // Installers
+    Route::resource('installers', App\Http\Controllers\InstallerController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
 
     // Grid Status
     Route::get('/grid-status', [GridStatusController::class, 'index'])->name('grid-status.index');
